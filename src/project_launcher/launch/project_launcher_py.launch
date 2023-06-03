@@ -1,0 +1,8 @@
+<launch>
+
+    <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_world.launch">
+    </include>
+
+    <node pkg="controller_py" type="wander_controller.py" name="wanderer_control_py"/>
+
+</launch>
