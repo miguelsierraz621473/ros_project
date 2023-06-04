@@ -34,15 +34,22 @@ class WanderController(threading.Thread):
         self.current_ranges = msg.ranges
         self.minimum_distance = min(self.current_ranges)
         self.minimum_distance_angle = self.current_ranges.index(self.minimum_distance)
-        rospy.loginfo("Values Minimum Range: %f Angle: %f Type: %s", self.minimum_distance, self.minimum_distance_angle, str(type(self.current_ranges)))
+        # rospy.loginfo("Values Minimum Range: %f Angle: %f Type: %s", self.minimum_distance, self.minimum_distance_angle, str(type(self.current_ranges)))
 
     def define_rotation_direction(self, minimum_distance: float, minimum_range_angle: float, whole_ranges: tuple, angle_delta: int) -> RotationDirection:
 
         if minimum_distance is None or minimum_range_angle is None or len(whole_ranges) == 0:
             return RotationDirection.NOT_DEFINED
         
-        angle_right = minimum_range_angle + angle_delta
-        angle_left = minimum_range_angle - angle_delta
+        if minimum_range_angle <= (360 - angle_delta):
+            angle_right = minimum_range_angle + angle_delta
+        else:
+            angle_right = 360 - minimum_range_angle + angle_delta
+
+        if minimum_range_angle >= (angle_delta):
+            angle_left = minimum_range_angle - angle_delta
+        else:
+            angle_left = 360 - abs(minimum_range_angle - angle_delta)
 
         distance_right = whole_ranges[angle_right]
         distance_left = whole_ranges[angle_left]
@@ -53,6 +60,7 @@ class WanderController(threading.Thread):
             return RotationDirection.COUNTERCLOCKWISE
         else:
             return RotationDirection.NOT_DEFINED
+        
 
     def wanderFunction(self) -> None:
 
