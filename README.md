@@ -206,7 +206,7 @@ or
 .~/catkin_ws/ros_project/scripts/base_simulation_cpp.sh
 ```
 
-# Compiling the package using docker
+# Docker
 
 Docker launches the program on a container which makes it easy to install and use on any development environment. In this case there is no need to install any ROS extra dependency.
 
