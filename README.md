@@ -6,14 +6,18 @@ This work has the following requirements.
 
 There are two options to compile the pacakge: Source or Docker.
 
+
+
+
 # Compiling the package from source
 
 Compiling from source requires installing all the required packages on the source pc. 
 
+
 ### Requirements
 
 - Ubuntu
-- 
+
 Ubuntu Focal 20.04 (LTS)
 Ubuntu Bionic 18.04 (LTS)
 
@@ -84,6 +88,7 @@ sudo apt-get install git
 ### Dependencies
 
 First, a few dependencies must be installed using Linux pakage manager `apt`
+
 
 #### For ROS melodic use this:
 
@@ -176,6 +181,7 @@ rosrun controller_cpp controller_cpp
 ```
 
 #### Using the bash files
+
 If you want to launch the whole system in one terminal you can use the following bash comands. Plaease make sure that the .sh files are executable by typing ll on the scripts folder. If they are not executable, please give them permission by using the following command:
 
 ```
@@ -209,6 +215,8 @@ Ubuntu Focal 20.04 (LTS)
 Ubuntu Bionic 18.04 (LTS)
 
 - Docker
+
+Install docker in case it is not installed on your system.
 
 ```
 sudo apt-get update
