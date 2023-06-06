@@ -6,10 +6,17 @@ This work has the following requirements.
 
 There are two options to compile the pacakge: Source or Docker.
 
+- [Source](#source)
+  - [Requirements](#requirements)
+  - [Dependencies](#dependencies)
+  - [Run](#run)
+- [Docker](#docker)
+  - [Requirements](#requirements)
+  - [Run](#run)
 
 
 
-# Compiling the package from source
+# Source
 
 Compiling from source requires installing all the required packages on the source pc. 
 
@@ -159,7 +166,7 @@ cd ~/catkin_ws
 catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release
 ```
 
-### Start the program.
+### Run.
 
 #### Using the launch files
 You have to source the ros workspace where you just compiled the package.
@@ -203,7 +210,7 @@ or
 
 Docker launches the program on a container which makes it easy to install and use on any development environment. In this case there is no need to install any ROS extra dependency.
 
-### Dependencies
+### Requirements
 
 - Ubuntu
 
@@ -259,7 +266,7 @@ sudo apt update
 sudo apt-get install python3-rocker
 ```
 
-### Start the program.
+### Run.
 
 If you want to launch the whole system in one terminal you can use the following bash comands. Plaease make sure that the .sh files are executable by typing ll on the scripts folder. If they are not executable, please give them permission by using the following command:
 
