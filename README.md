@@ -19,6 +19,7 @@ Compiling from source requires installing all the required packages on the sourc
 - Ubuntu
 
 Ubuntu Focal 20.04 (LTS)
+
 Ubuntu Bionic 18.04 (LTS)
 
 Please verify that your operative system is running one of the versions above using:
