@@ -30,19 +30,18 @@ class WanderController(threading.Thread):
         
         self.minimum_acceptable_range = minimum_acceptable_range_ahead
         self.minimum_acceptable_space_sides = minimum_acceptable_range_side
-        self.angle_delta = 30
+        self.angle_delta = 60
 
         self.obstacle_ahead = False
         self.current_ranges = tuple()
         self.minimum_distance = None
         self.minimum_distance_angle = None
-        self.min_distance_in_estimated_orientation = None
         self.rotation = RotationDirection.NOT_DEFINED
 
         self.estimated_velocity = None
         self.estimated_orientation = None
 
-        self.rate = rospy.Rate(10)
+        self.rate = rospy.Rate(5)
 
         rospy.loginfo("Python Controller has been initialized")
         
@@ -53,7 +52,7 @@ class WanderController(threading.Thread):
         self.current_ranges = msg.ranges
         self.minimum_distance = min(self.current_ranges)
         self.minimum_distance_angle = self.current_ranges.index(self.minimum_distance)
-        # rospy.loginfo("Values Minimum Range: %f Angle: %f Type: %s", self.minimum_distance, self.minimum_distance_angle, str(type(self.current_ranges)))
+        # rospy.loginfo("Values -> Minimum Range: %f Angle: %f Type: %s", self.minimum_distance, self.minimum_distance_angle, str(type(self.current_ranges)))
 
     def odomCallback(self, msg: Odometry) -> None:
 
@@ -64,61 +63,68 @@ class WanderController(threading.Thread):
         current_pose = msg.pose.pose
         (x, y, self.estimated_orientation) = euler_from_quaternion([current_pose.orientation.x, current_pose.orientation.y, current_pose.orientation.z, current_pose.orientation.w])
         self.estimated_orientation = math.degrees(self.estimated_orientation)
+
         if self.estimated_orientation < 0:
             self.estimated_orientation = 360 - abs(self.estimated_orientation)
 
         self.estimated_orientation = int(self.estimated_orientation)
+        # rospy.loginfo("Values -> Estimated Velocity: %f Estimated Orientation: %d", self.estimated_velocity, self.estimated_orientation)))
 
-        if len(self.current_ranges) > 0:
-            if self.estimated_orientation < 0 or self.estimated_orientation > 360:
-                rospy.logwarn("Orientation out of range : %d", self.estimated_orientation)
-            self.min_distance_in_estimated_orientation = self.current_ranges[self.estimated_orientation]
+    def get_view_angles(self, angle_delta: int) -> tuple:
 
-    def define_rotation_direction(self, min_distance_in_estimated_orientation: float, estimated_orientation: float, whole_ranges: tuple, angle_delta: int) -> RotationDirection:
+        angle_right = 0 + angle_delta
+        angle_left = 360 - angle_delta
 
-        if min_distance_in_estimated_orientation is None or estimated_orientation is None or len(whole_ranges) == 0:
+        return angle_right, angle_left
+
+    def define_rotation_direction(self, whole_ranges: tuple, angle_delta: int) -> RotationDirection:
+
+        if len(whole_ranges) == 0:
             return RotationDirection.NOT_DEFINED
         
-        angle_right, angle_left = self.get_view_angles(estimated_orientation, angle_delta)
+        distance_ahead = whole_ranges[0]
+        angle_right, angle_left = self.get_view_angles(angle_delta)
 
         distance_right = whole_ranges[angle_right]
         distance_left = whole_ranges[angle_left]
 
-        if distance_left < min_distance_in_estimated_orientation < distance_right:
+        if distance_left < distance_ahead < distance_right:
             return RotationDirection.CLOCKWISE
-        elif distance_left > min_distance_in_estimated_orientation > distance_right:
+        elif distance_left > distance_ahead > distance_right:
             return RotationDirection.COUNTERCLOCKWISE
         else:
             return RotationDirection.NOT_DEFINED
         
-    def check_safe_to_go_area(self, estimated_orientation: float, whole_ranges: tuple, angle_delta: int) -> bool:
+    def check_safe_to_go_area(self, whole_ranges: tuple, angle_delta: int) -> bool:
 
-        if estimated_orientation is None or len(whole_ranges) == 0:
+        if len(whole_ranges) == 0:
             return False
-
-        angle_right, angle_left = self.get_view_angles(estimated_orientation, angle_delta)
+        
+        distance_ahead = whole_ranges[0]
+        angle_right, angle_left = self.get_view_angles(angle_delta)
 
         distance_right = whole_ranges[angle_right]
         distance_left = whole_ranges[angle_left]
 
-        if distance_left > self.minimum_acceptable_range and distance_right > self.minimum_acceptable_range:
+        print("Condition Evaluation -> Distance to obstacle ahead: ", distance_ahead, " Distance to obstacle Right: " , distance_right, " Distance to obstacle Left: ",  distance_right, " Limit Ahead: ", self.minimum_acceptable_range, " Limit Sides : ", self.minimum_acceptable_space_sides)
+
+        if distance_ahead > self.minimum_acceptable_range and distance_left > self.minimum_acceptable_space_sides and distance_right > self.minimum_acceptable_space_sides:
             return True
         else:
             return False
+        
+    def check_can_rotate_safely(self, whole_ranges: tuple) -> bool:
 
-    def get_view_angles(self, estimated_orientation: float, angle_delta: int) -> tuple:
+        far_left_angle = 90
+        far_right_angle = 270
 
-        if estimated_orientation <= (360 - angle_delta):
-            angle_right = estimated_orientation + angle_delta
+        distance_far_left = whole_ranges[far_left_angle]
+        distance_far_right = whole_ranges[far_right_angle]
+
+        if distance_far_left < 0.5 and distance_far_right < 0.5:
+            return True
         else:
-            angle_right = 360 - estimated_orientation + angle_delta
-
-        if estimated_orientation >= (angle_delta):
-            angle_left = estimated_orientation - angle_delta
-        else:
-            angle_left = 360 - abs(estimated_orientation - angle_delta)
-
-        return angle_right, angle_left
+            return False
 
     def wanderFunction(self) -> None:
 
@@ -126,18 +132,18 @@ class WanderController(threading.Thread):
 
             try:
 
-                if self.min_distance_in_estimated_orientation is None or self.minimum_distance_angle is None or self.minimum_distance is None:
+                if self.minimum_distance_angle is None or self.minimum_distance is None:
                     # print("Skipping")
                     continue
 
-                print("CONDITION EVALUATION - Distance to obstacle ahead: ", self.min_distance_in_estimated_orientation, " Minimum Acceptable Range: " , self.minimum_acceptable_range, " Obstacle Ahead Judgement: ", self.obstacle_ahead)
-            
+                print("Entering with Obstacle Ahead ", self.obstacle_ahead)
+
                 if not self.obstacle_ahead:
-                    if (self.min_distance_in_estimated_orientation < self.minimum_acceptable_range):
+                    if (not self.check_safe_to_go_area(self.current_ranges, self.angle_delta) and self.check_can_rotate_safely(self.current_ranges)):
                         self.obstacle_ahead = True
 
                 else:
-                    if (self.min_distance_in_estimated_orientation > self.minimum_acceptable_range and not self.check_safe_to_go_area(self.estimated_orientation, self.current_ranges, self.angle_delta)):
+                    if self.check_safe_to_go_area(self.current_ranges, self.angle_delta):
                         self.obstacle_ahead = False
 
 
@@ -149,7 +155,7 @@ class WanderController(threading.Thread):
                     twist_to_publish.angular.z = 0.0
                 else:
                     print("Rotating")
-                    rotation_direction = self.define_rotation_direction(self.min_distance_in_estimated_orientation, self.estimated_orientation, self.current_ranges, self.angle_delta)
+                    rotation_direction = self.define_rotation_direction(self.current_ranges, self.angle_delta)
                     if rotation_direction == RotationDirection.CLOCKWISE or rotation_direction == RotationDirection.NOT_DEFINED:
                         sign = 1
                         # print("Clockwise")
@@ -176,7 +182,7 @@ class WanderController(threading.Thread):
         
 if __name__ == '__main__':
     
-    controller = WanderController(0.8, 0.2)
+    controller = WanderController(0.8, 0.3)
     controller.start()
     rospy.spin()
     controller.join()

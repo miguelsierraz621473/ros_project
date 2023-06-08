@@ -9,11 +9,14 @@ project(controller_py)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  actionlib
+  tf
   std_msgs
   geometry_msgs
   sensor_msgs
   nav_msgs
-  tf
+  move_base_msgs
+  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions

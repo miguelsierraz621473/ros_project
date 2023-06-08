@@ -8,4 +8,6 @@ source devel/setup.bash
 
 export TURTLEBOT3_MODEL=burger
 
-roslaunch project_launcher project_launcher.launch
+project_directory=$( echo "$PWD" )
+
+roslaunch project_launcher project_launcher.launch map_path:=$project_directory/map/map.yaml
