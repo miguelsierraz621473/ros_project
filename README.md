@@ -7,8 +7,8 @@ This work has the following requirements.
 There are two options to compile the pacakge: Source or Docker.
 
 - [Source](#source)
-  - [Source_Requirements](#source_requirements
-  - [Source_General_Dependencies](#source_general_dependencies))
+  - [Source_Requirements](#source_requirements)
+  - [Source_General_Dependencies](#source_general_dependencies)
   - [Source_Dependencies](#source_dependencies)
   - [Source_Run](#source_run)
 - [Docker](#docker)
