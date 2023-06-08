@@ -96,13 +96,51 @@ class MoveBaseController(threading.Thread):
     
     def __init__(self) -> None:
         """
-        Constructor for the controller.
-        Initializes the state of the variables and asumes it does not know where the robot is. 
-        It ensures the Action server is running.
-        Arguments:
-        None
-        Returns:
-        None
+        A controller for moving a robot using the move_base action in ROS.
+
+        This controller initializes the necessary ROS nodes, sets up the action client, subscribes to the odometry topic,
+        and initializes other required attributes.
+
+        Args:
+            None
+
+        Attributes:
+            goal_action_client (ActionClient): The action client for the 'move_base' action.
+            robot_odom_sub (Subscriber): The subscriber to the '/odom' topic for receiving odometry data.
+            initial_pose_estimate_pub (Publisher): The publisher for the '/initialpose' topic to send initial pose estimates.
+            current_estimated_pose (Odometry): The current estimated pose of the robot.
+            current_area (GeneralArea): The current area of the robot's location.
+            available_areas (dict): A dictionary of available areas and their associated polygons.
+            latest_published_feedback (rospy.Time): The timestamp of the latest published feedback.
+            activeGoal (bool): Flag indicating if there is an active goal being executed.
+
+        Raises:
+            None
+
+        Example:
+            controller = MoveBaseController()
+
+        ROSのmove_baseアクションを使用してロボットを移動させるためのコントローラ。
+
+        このコントローラは必要なROSノードを初期化し、アクションクライアントを設定し、オドメトリトピックにサブスクライブし、
+        他の必要な属性を初期化します。
+
+        引数:
+            なし
+
+        属性:
+            goal_action_client (ActionClient): 'move_base'アクションのアクションクライアント。
+            robot_odom_sub (Subscriber): オドメトリデータを受け取るための'/odom'トピックのサブスクライバ。
+            initial_pose_estimate_pub (Publisher): '/initialpose'トピックに初期姿勢推定を送信するためのパブリッシャ。
+            current_estimated_pose (Odometry): ロボットの現在の推定姿勢。
+            current_area (GeneralArea): ロボットの位置の現在のエリア。
+            available_areas (dict): 利用可能なエリアとそれに関連するポリゴンの辞書。
+            latest_published_feedback (rospy.Time): 最新のフィードバックのタイムスタンプ。
+            activeGoal (bool): 実行中のゴールがあるかどうかを示すフラグ。
+
+        例:
+            controller = MoveBaseController()
+
         """
 
         threading.Thread.__init__(self)
@@ -129,35 +167,81 @@ class MoveBaseController(threading.Thread):
 
     def createPolygons(self) -> None:
         """
-        Function that creates Shapely Polygons for each of the areas inside. The polygons are created using a list of points of the vertex.
+        Creates Shapely Polygons for each of the areas inside.
+
+        This function iterates over the defined areas and their corresponding regions in the AreaDelimitations.AREAS dictionary.
+        It creates a Shapely Polygon object for each region using the list of vertex points.
+
         Arguments:
-        None
+            None
+
         Returns:
-        None
-        """        
+            None
+
+        各エリア内のShapelyポリゴンを作成します。
+
+        この関数は、AreaDelimitations.AREAS辞書内の定義されたエリアとそれに対応する領域を反復処理します。
+        各領域に対して、頂点のリストを使用してShapelyのポリゴンオブジェクトを作成します。
+
+        引数:
+            なし
+
+        戻り値:
+            なし
+        """     
 
         for area, regions in AreaDelimitations.AREAS.items():
             self.available_areas[area] = Polygon(list(regions.values()))
         
     def confirmServerUp(self) -> bool:
         """
-        Function that confirms that the move_base action server is running.
+        Confirms that the move_base action server is running.
+
+        This function uses the `wait_for_server` method of the `goal_action_client` to check if the action server is up and running.
+        It waits for a maximum of 5 seconds for the server to become available.
+
         Arguments:
-        None
+            None
+
         Returns:
-        None
+            bool: True if the action server is running, False otherwise.
+
+
+        move_baseアクションサーバーが稼働していることを確認します。
+
+        この関数は、`goal_action_client`の`wait_for_server`メソッドを使用して、アクションサーバーが起動しているかどうかを確認します。
+        最大5秒間、サーバーが利用可能になるまで待機します。
+
+        引数:
+            なし
+
+        戻り値:
+            bool: アクションサーバーが稼働している場合はTrue、それ以外の場合はFalse。
         """
 
         return self.goal_action_client.wait_for_server(rospy.Duration(5))
 
     def isInsideArea(self, point : Point, polygon: Polygon) -> bool:
         """
+        Checks if a point is inside a polygon.
+
         Arguments:
-        Point : point -> Point of 2D that representes a single coordinate on the map. This data usually comes from the odometry as long as it is being updated and sent from the robot. This corresponds to the robot actual position.
-        Polygon : polygon -> Shapely polygon object defined by its vertex.
+            point (Point): The 2D point representing a coordinate on the map. This data is typically obtained from the odometry and represents the actual position of the robot.
+            polygon (Polygon): The Shapely polygon object defined by its vertices.
+
         Returns:
-        Bool: Returns true if the point is inside the area of the polygon, false otherwise.
+            bool: True if the point is inside the polygon, False otherwise.
+
+        ポリゴンの内部に指定の座標が含まれているかどうかをチェックします。
+
+        引数:
+            point (Point): マップ上の座標を表す2Dポイント。このデータは通常、オドメトリから取得され、ロボットの実際の位置を表します。
+            polygon (Polygon): 頂点によって定義されたShapelyのポリゴンオブジェクト。
+
+        戻り値:
+            bool: 指定の座標がポリゴンの内部にある場合はTrue、それ以外の場合はFalse。
         """
+
         if polygon.contains(point):
             return True
         else:
@@ -165,11 +249,29 @@ class MoveBaseController(threading.Thread):
 
     def determineCurrentArea(self, x: float, y: float) -> GeneralArea:
         """
+        Determines the current area based on the given coordinates.
+
         Arguments:
-        float: x -> The coordinate x for the position of the robot
-        float: y -> The coordinate y for the position of the robot.
+            x (float): The x coordinate for the robot's position.
+            y (float): The y coordinate for the robot's position.
+
         Returns:
-        GeneralArea 
+            GeneralArea: The current area determined based on the coordinates.
+
+        Raises:
+            None
+
+        座標に基づいて現在のエリアを判定します。
+
+        引数:
+            x (float): ロボットの位置のx座標。
+            y (float): ロボットの位置のy座標。
+
+        戻り値:
+            GeneralArea: 座標に基づいて判定された現在のエリア。
+
+        例外:
+            なし
         """
 
         for area, polygon in self.available_areas.items():
@@ -180,21 +282,58 @@ class MoveBaseController(threading.Thread):
 
     def odomCallback(self, msg: Odometry) -> None:
         """
+        Callback function for the '/odom' topic that updates the current estimated pose and area.
+
         Arguments:
-        Odometry: msg
+            msg (Odometry): The Odometry message containing the robot's pose and position information.
+
         Returns:
-        None
+            None
+
+        Raises:
+            None
+
+        '/odom' トピックのコールバック関数で、現在の推定姿勢とエリアを更新します。
+
+        引数:
+            msg (Odometry): ロボットの姿勢と位置情報を含む Odometry メッセージ。
+
+        戻り値:
+            None
+
+        例外:
+            なし
         """
 
         self.current_estimated_pose = msg
         self.current_area = self.determineCurrentArea(msg.pose.pose.position.x, msg.pose.pose.position.y)
 
     def selectRandomArea(self) -> GeneralArea:
+
         """
-        Arguments:
+        Selects a random area from the available areas.
+
+        This function randomly selects an area from the list of available areas while ensuring that the selected area is not the same as the current area.
+        It uses a time-based loop to limit the selection process to 10 seconds.
 
         Returns:
+            GeneralArea: The randomly selected area.
+
+        Raises:
+            None
+
+        利用可能なエリアからランダムにエリアを選択します。
+
+        この関数は、利用可能なエリアのリストからランダムにエリアを選択しますが、選択されたエリアが現在のエリアと異なることを確認します。
+        選択プロセスを10秒に制限するために、時間ベースのループを使用します。
+
+        戻り値:
+            GeneralArea: ランダムに選択されたエリア。
+
+        例外:
+            なし
         """
+
 
         random_area = None
         start_time = datetime.datetime.now()
@@ -213,9 +352,31 @@ class MoveBaseController(threading.Thread):
     
     def selectRandomCoordinatesFromArea(self, desired_polygon : Polygon) -> tuple:
         """
+        Generates a random point within a specified polygon.
+
         Arguments:
+            desired_polygon (Polygon): The polygon object representing the desired shape.
 
         Returns:
+            tuple: A tuple containing the randomly generated (x, y) coordinates within the polygon.
+
+        Example:
+            >>> polygon = Polygon([(0, 0), (0, 5), (5, 5), (5, 0)])
+            >>> generate_random_point_within_polygon(polygon)
+            (2.3, 3.8)
+
+        指定されたポリゴン内でランダムな点を生成します。
+
+        引数:
+            desired_polygon (Polygon): ポリゴン形状を表すポリゴンオブジェクト。
+
+        戻り値:
+            tuple: ポリゴン内でランダムに生成された (x, y) 座標を含むタプル。
+
+        例:
+            >>> polygon = Polygon([(0, 0), (0, 5), (5, 5), (5, 0)])
+            >>> generate_random_point_within_polygon(polygon)
+            (2.3, 3.8)
         """
 
         xmin, ymin, xmax, ymax = desired_polygon.bounds
@@ -231,18 +392,48 @@ class MoveBaseController(threading.Thread):
     
     def selectRandomOrientation(self) -> float:
         """
-        Arguments:
+        Generates a random orientation angle within the range of 0 to 360 degrees.
 
         Returns:
+            float: A random orientation angle in degrees.
+
+        Example:
+            >>> selectRandomOrientation()
+            245.8
+
+        0度から360度の範囲内でランダムな方向角を生成します。
+
+        戻り値:
+            float: ランダムな方向角（度数法）。
+
+        例:
+            >>> selectRandomOrientation()
+            245.8
+
         """
 
         return float(random.randint(0, 360))
 
     def generateRandomGoal(self) -> MoveBaseGoal:
+
         """
-        Arguments:
+        Generates a random goal for the move_base action.
 
         Returns:
+            MoveBaseGoal: A MoveBaseGoal object representing the randomly generated goal.
+
+        Example:
+            >>> generateRandomGoal()
+            MoveBaseGoal(target_pose=PoseStamped(header=Header(frame_id='map', stamp=rospy.Time(0)), pose=Pose(position=Point(x=2.3, y=3.8, z=0.0), orientation=Quaternion(x=0.0, y=0.0, z=0.987, w=0.161))))
+        ランダムなゴールをmove_baseアクションのために生成します。
+
+        戻り値:
+            MoveBaseGoal: ランダムに生成されたゴールを表すMoveBaseGoalオブジェクト。
+
+        例:
+            >>> generateRandomGoal()
+            MoveBaseGoal(target_pose=PoseStamped(header=Header(frame_id='map', stamp=rospy.Time(0)), pose=Pose(position=Point(x=2.3, y=3.8, z=0.0), orientation=Quaternion(x=0.0, y=0.0, z=0.987, w=0.161))))
+        
         """
 
         area_to_go : GeneralArea = self.selectRandomArea()
@@ -272,18 +463,42 @@ class MoveBaseController(threading.Thread):
     
     def givePoseEstimate(self, initial_pose : PoseWithCovarianceStamped) -> None:
         """
-        Arguments:
+        Publishes the initial pose estimate.
+
+        Args:
+            initial_pose (PoseWithCovarianceStamped): The initial pose estimate to be published.
 
         Returns:
+            None
+
+        初期姿勢の推定値をパブリッシュします。
+
+        引数:
+            initial_pose (PoseWithCovarianceStamped): パブリッシュする初期姿勢の推定値。
+
+        戻り値:
+            None
         """
 
         self.initial_pose_estimate_pub.publish(initial_pose)
     
     def transitionCallback(self, goal_handle : actionlib.ClientGoalHandle) -> None:
         """
-        Arguments:
+        Callback function to handle goal transition states.
+
+        Args:
+            goal_handle (actionlib.ClientGoalHandle): The goal handle containing the transition state.
 
         Returns:
+            None
+
+        ゴールの遷移状態を処理するためのコールバック関数です。
+
+        引数:
+            goal_handle (actionlib.ClientGoalHandle): 遷移状態を含むゴールハンドル。
+
+        戻り値:
+            None
         """
 
         goal = goal_handle.get_goal_status()
@@ -326,9 +541,23 @@ class MoveBaseController(threading.Thread):
 
     def feedbackCallback(self, goal_handle : actionlib.ClientGoalHandle, feedback : MoveBaseFeedback) -> None:
         """
-        Arguments:
+        Callback function to handle feedback received from the action server.
+
+        Args:
+            goal_handle (actionlib.ClientGoalHandle): The goal handle associated with the feedback.
+            feedback (MoveBaseFeedback): The feedback received from the action server.
 
         Returns:
+            None
+
+        アクションサーバから受け取ったフィードバックを処理するためのコールバック関数です。
+
+        引数:
+            goal_handle (actionlib.ClientGoalHandle): フィードバックに関連するゴールハンドル。
+            feedback (MoveBaseFeedback): アクションサーバから受け取ったフィードバック。
+
+        戻り値:
+            None
         """
 
         (x, y ,z) = feedback.base_position.pose.position.x, feedback.base_position.pose.position.x, feedback.base_position.pose.position.x
@@ -346,9 +575,27 @@ class MoveBaseController(threading.Thread):
 
     def run(self) -> None:
         """
-        Arguments:
+        Executes the main functionality of the controller.
+
+        This function confirms the availability of the action server, sends the initial pose estimate,
+        and continuously generates and sends random goals to the action server while the program is running.
+
+        Args:
+            None
 
         Returns:
+            None
+
+        コントローラのメイン機能を実行します。
+
+        この関数はアクションサーバの利用可能性を確認し、初期姿勢の推定を送信し、
+        プログラムが実行中の間、連続的にランダムなゴールを生成してアクションサーバに送信します。
+
+        引数:
+            None
+
+        戻り値:
+            None
         """
 
         if not self.confirmServerUp:
@@ -373,6 +620,29 @@ class MoveBaseController(threading.Thread):
                 time.sleep(5)
             
 if __name__ == '__main__':
+    """
+    The main entry point of the program.
+
+    This function initializes the MoveBaseController, starts its execution, and enters the ROS event loop.
+    It handles any ROS interruption exceptions and logs any unexpected exceptions that may occur.
+
+    Args:
+        None
+
+    Returns:
+        None
+
+    プログラムのメインエントリーポイントです。
+
+    この関数はMoveBaseControllerを初期化し、実行を開始し、ROSのイベントループに入ります。
+    ROSの割り込み例外を処理し、予期しない例外が発生した場合はログに記録します。
+
+    引数:
+        None
+
+    戻り値:
+        None
+    """
     
     try:
         controller = MoveBaseController()
