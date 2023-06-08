@@ -7,12 +7,13 @@ This work has the following requirements.
 There are two options to compile the pacakge: Source or Docker.
 
 - [Source](#source)
-  - [Requirements](#requirements)
-  - [Dependencies](#dependencies)
-  - [Run](#run)
+  - [Source_Requirements](#source_requirements)
+  - [Source_Dependencies](#source_dependencies)
+  - [Source_General_Dependencies](#source_general_dependencies)
+  - [Source_Run](#source_run)
 - [Docker](#docker)
-  - [Requirements](#requirements)
-  - [Run](#run)
+  - [Docker_Requirements](#docker_requirements)
+  - [Docker_Run](#docker_run)
 
 
 
@@ -21,7 +22,7 @@ There are two options to compile the pacakge: Source or Docker.
 Compiling from source requires installing all the required packages on the source pc. 
 
 
-### Requirements
+### Source_Requirements
 
 - Ubuntu
 
@@ -93,11 +94,11 @@ if git is not installed, install it using the following command:
 sudo apt-get install git
 ```
 
-### Dependencies
+### Source_Dependencies
 
 First, a few dependencies must be installed using Linux pakage manager `apt`
 
-### General Dependencies
+### Source_General_Dependencies
 
 Install an extra library to calculate irregular areas
 
@@ -174,7 +175,7 @@ cd ~/catkin_ws
 catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release
 ```
 
-### Run.
+### Source_Run.
 
 #### Using the launch files
 You have to source the ros workspace where you just compiled the package.
@@ -218,7 +219,7 @@ or
 
 Docker launches the program on a container which makes it easy to install and use on any development environment. In this case there is no need to install any ROS extra dependency.
 
-### Requirements
+### Docker_Requirements
 
 - Ubuntu
 
@@ -274,7 +275,7 @@ sudo apt update
 sudo apt-get install python3-rocker
 ```
 
-### Run.
+### Docker_Run.
 
 If you want to launch the whole system in one terminal you can use the following bash comands. Plaease make sure that the .sh files are executable by typing ll on the scripts folder. If they are not executable, please give them permission by using the following command:
 
