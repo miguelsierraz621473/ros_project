@@ -298,7 +298,7 @@ git clone https://github.com/masierra892/ros_project.git
 
 If you want to launch the whole system in one terminal you can use the following bash comands. Plaease make sure that the .sh files are executable by typing `ll` on the scripts folder terminal. If they are not executable, please give them permission by using the following command:
 
-``
+```
 chmod +x <sh-file> # Replace the sh-file with the name of each file in the scripts folder. 
 ```
 
