@@ -94,10 +94,6 @@ if git is not installed, install it using the following command:
 sudo apt-get install git
 ```
 
-### Source_Dependencies
-
-First, a few dependencies must be installed using Linux pakage manager `apt`
-
 ### Source_General_Dependencies
 
 Install an extra library to calculate irregular areas
@@ -105,6 +101,10 @@ Install an extra library to calculate irregular areas
 ```
 sudo apt-get install python3-shapely
 ```
+
+### Source_Dependencies
+
+First, a few dependencies must be installed using Linux pakage manager `apt`
 
 
 #### For ROS melodic use this:
