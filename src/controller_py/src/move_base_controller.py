@@ -226,7 +226,7 @@ class MoveBaseController(threading.Thread):
             self.activeGoal = False
 
         if goal == GoalStatus.REJECTED:
-            rospy.logwarn(" The goal was rejected by the action server without being processed, because the goal was unattainable or invalid (Terminal State)")
+            rospy.logwarn("The goal was rejected by the action server without being processed, because the goal was unattainable or invalid (Terminal State)")
             self.activeGoal = False
 
         if goal == GoalStatus.PREEMPTING:
