@@ -53,16 +53,9 @@ RUN apt-get update && apt-get install -y ros-${ROS_DISTRO}-joy ros-${ROS_DISTRO}
                                          ros-${ROS_DISTRO}-rosserial-msgs ros-${ROS_DISTRO}-amcl ros-${ROS_DISTRO}-map-server \
                                          ros-${ROS_DISTRO}-move-base ros-${ROS_DISTRO}-urdf ros-${ROS_DISTRO}-xacro \
                                          ros-${ROS_DISTRO}-compressed-image-transport ros-${ROS_DISTRO}-rqt* ros-${ROS_DISTRO}-rviz \
-                                         ros-${ROS_DISTRO}-gmapping ros-${ROS_DISTRO}-navigation ros-${ROS_DISTRO}-interactive-markers \
-                                         ros-${ROS_DISTRO}-dynamixel-sdk ros-${ROS_DISTRO}-turtlebot3-msgs ros-${ROS_DISTRO}-turtlebot3 \
+                                         ros-${ROS_DISTRO}-gmapping ros-${ROS_DISTRO}-navigation \
+                                         ros-${ROS_DISTRO}-turtlebot3-msgs ros-${ROS_DISTRO}-turtlebot3 \
                                          ros-${ROS_DISTRO}-turtlebot3-simulations ros-${ROS_DISTRO}-turtlebot3-gazebo
-
-                        
-
-#
-# Copy Files
-#
-
 
 #
 # Sourcing Ros

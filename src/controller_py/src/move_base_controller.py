@@ -15,6 +15,10 @@ import datetime
 from shapely.geometry import Point, Polygon
 
 class GeneralArea(enum.Enum):
+    """
+    Enumeration class for the different zones of the map
+    """
+
     NOT_DEFINED = -1
     AREA_RIGHT = 0
     AREA_UP = 1
@@ -23,6 +27,10 @@ class GeneralArea(enum.Enum):
     AREA_MIDDLE = 4
 
 class AreaDelimitations():
+    """
+    Class that acts as a dictionary to save the regions for each area. Each vertex is defines as a shapely Point.
+    """
+
     AREAS = {
             'AREA_RIGHT': {
                 'P1': Point(1.1313250064849854, 2.4731078147888184),
@@ -67,6 +75,8 @@ class AreaDelimitations():
 class InitialPoseEstimate(PoseWithCovarianceStamped):
 
     def __init__(self):
+        """
+        """
         super().__init__()
         self.header.frame_id = 'map'
         self.header.stamp = rospy.Time.now()
@@ -85,6 +95,15 @@ class InitialPoseEstimate(PoseWithCovarianceStamped):
 class MoveBaseController(threading.Thread):
     
     def __init__(self) -> None:
+        """
+        Constructor for the controller.
+        Initializes the state of the variables and asumes it does not know where the robot is. 
+        It ensures the Action server is running.
+        Arguments:
+        None
+        Returns:
+        None
+        """
 
         threading.Thread.__init__(self)
         rospy.init_node("python_move_base_controller")
@@ -109,22 +128,49 @@ class MoveBaseController(threading.Thread):
         rospy.loginfo("Successfully initialized controller")
 
     def createPolygons(self) -> None:
+        """
+        Function that creates Shapely Polygons for each of the areas inside. The polygons are created using a list of points of the vertex.
+        Arguments:
+        None
+        Returns:
+        None
+        """        
 
         for area, regions in AreaDelimitations.AREAS.items():
             self.available_areas[area] = Polygon(list(regions.values()))
         
     def confirmServerUp(self) -> bool:
+        """
+        Function that confirms that the move_base action server is running.
+        Arguments:
+        None
+        Returns:
+        None
+        """
 
         return self.goal_action_client.wait_for_server(rospy.Duration(5))
 
     def isInsideArea(self, point : Point, polygon: Polygon) -> bool:
-
+        """
+        Arguments:
+        Point : point -> Point of 2D that representes a single coordinate on the map. This data usually comes from the odometry as long as it is being updated and sent from the robot. This corresponds to the robot actual position.
+        Polygon : polygon -> Shapely polygon object defined by its vertex.
+        Returns:
+        Bool: Returns true if the point is inside the area of the polygon, false otherwise.
+        """
         if polygon.contains(point):
             return True
         else:
             return False
 
     def determineCurrentArea(self, x: float, y: float) -> GeneralArea:
+        """
+        Arguments:
+        float: x -> The coordinate x for the position of the robot
+        float: y -> The coordinate y for the position of the robot.
+        Returns:
+        GeneralArea 
+        """
 
         for area, polygon in self.available_areas.items():
             if self.isInsideArea(Point(x, y), polygon):
@@ -133,11 +179,22 @@ class MoveBaseController(threading.Thread):
         return GeneralArea.NOT_DEFINED
 
     def odomCallback(self, msg: Odometry) -> None:
+        """
+        Arguments:
+        Odometry: msg
+        Returns:
+        None
+        """
 
         self.current_estimated_pose = msg
         self.current_area = self.determineCurrentArea(msg.pose.pose.position.x, msg.pose.pose.position.y)
 
     def selectRandomArea(self) -> GeneralArea:
+        """
+        Arguments:
+
+        Returns:
+        """
 
         random_area = None
         start_time = datetime.datetime.now()
@@ -155,6 +212,11 @@ class MoveBaseController(threading.Thread):
         return random_area
     
     def selectRandomCoordinatesFromArea(self, desired_polygon : Polygon) -> tuple:
+        """
+        Arguments:
+
+        Returns:
+        """
 
         xmin, ymin, xmax, ymax = desired_polygon.bounds
 
@@ -168,10 +230,20 @@ class MoveBaseController(threading.Thread):
         return (x, y)
     
     def selectRandomOrientation(self) -> float:
+        """
+        Arguments:
+
+        Returns:
+        """
 
         return float(random.randint(0, 360))
 
     def generateRandomGoal(self) -> MoveBaseGoal:
+        """
+        Arguments:
+
+        Returns:
+        """
 
         area_to_go : GeneralArea = self.selectRandomArea()
         selected_polygon = self.available_areas[area_to_go.name]
@@ -199,10 +271,20 @@ class MoveBaseController(threading.Thread):
         return goal_to_return
     
     def givePoseEstimate(self, initial_pose : PoseWithCovarianceStamped) -> None:
+        """
+        Arguments:
+
+        Returns:
+        """
 
         self.initial_pose_estimate_pub.publish(initial_pose)
     
     def transitionCallback(self, goal_handle : actionlib.ClientGoalHandle) -> None:
+        """
+        Arguments:
+
+        Returns:
+        """
 
         goal = goal_handle.get_goal_status()
         rospy.loginfo("Got transition state: %d", goal)
@@ -243,6 +325,11 @@ class MoveBaseController(threading.Thread):
             rospy.logwarn("Lost Goal")
 
     def feedbackCallback(self, goal_handle : actionlib.ClientGoalHandle, feedback : MoveBaseFeedback) -> None:
+        """
+        Arguments:
+
+        Returns:
+        """
 
         (x, y ,z) = feedback.base_position.pose.position.x, feedback.base_position.pose.position.x, feedback.base_position.pose.position.x
 
@@ -257,7 +344,12 @@ class MoveBaseController(threading.Thread):
             rospy.loginfo("Feedback received from the action server -> Current position is x: %f, y: %f, yaw: %f", x, y, yaw)
             self.latest_published_feedback = rospy.Time.now()
 
-    def run(self):
+    def run(self) -> None:
+        """
+        Arguments:
+
+        Returns:
+        """
 
         if not self.confirmServerUp:
             rospy.logerr("Action Server could not be reached..finishing execution")
