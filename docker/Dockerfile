@@ -1,11 +1,11 @@
-FROM ros:${ROS_DISTRO}-ros-base
+FROM ros:noetic-ros-base
 
 #
 # Defining entry arguments
 #
 
-ENV ROS_DISTRO=${ROS_DISTRO}
-ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
+ENV ROS_DISTRO=noetic
+ENV ROS_ROOT=/opt/ros/noetic
 ENV ROS_PYTHON_VERSION=3
 
 #
@@ -20,7 +20,7 @@ RUN apt-get update && \
 # Sourcing Ros
 #
 
-RUN echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> /root/.bashrc
+RUN echo 'source /opt/ros/noetic/setup.bash' >> /root/.bashrc
 
 #
 # Ros Dependencies
@@ -62,13 +62,12 @@ RUN apt-get update && apt-get install -y ros-${ROS_DISTRO}-joy ros-${ROS_DISTRO}
 #
 # Copy Files
 #
-COPY ./packages/ros_entrypoint.sh /ros_entrypoint.sh
-COPY ./packages/create_ros_workspace.sh /create_ros_workspace.sh
+
 
 #
 # Sourcing Ros
 #
-RUN echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> /root/.bashrc
+RUN echo 'source /opt/ros/noetic/setup.bash' >> /root/.bashrc
 
 #
 # Setup Entry Point
