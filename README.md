@@ -7,9 +7,9 @@ This work has the following requirements.
 There are two options to compile the pacakge: Source or Docker.
 
 - [Source](#source)
-  - [Source_Requirements](#source_requirements)
+  - [Source_Requirements](#source_requirements
+  - [Source_General_Dependencies](#source_general_dependencies))
   - [Source_Dependencies](#source_dependencies)
-  - [Source_General_Dependencies](#source_general_dependencies)
   - [Source_Run](#source_run)
 - [Docker](#docker)
   - [Docker_Requirements](#docker_requirements)
@@ -205,14 +205,22 @@ If you want to launch the whole system in one terminal you can use the following
 chmod +x <sh-file> # Replace the sh-file with the name of each file in the scripts folder. 
 ```
 
-Then launch the project. 
+Then launch the whole project. 
+
+For the main move_base whole package, please use the following command.
 
 ```
-.~/catkin_ws/ros_project/scripts/base_simulation_py.sh
+.~/catkin_ws/ros_project/scripts/move_base_controller_py.sh
+```
+
+For the naive controllers, please use this one (Optional)
+
+```
+.~/catkin_ws/ros_project/scripts/naive_controller_py.sh
 ```
 or
 ```
-.~/catkin_ws/ros_project/scripts/base_simulation_cpp.sh
+.~/catkin_ws/ros_project/scripts/naive_controller_cpp.sh
 ```
 
 # Docker
@@ -226,9 +234,13 @@ Docker launches the program on a container which makes it easy to install and us
 Docker and docker compose can work on the following systems: 
 
 Ubuntu Lunar 23.04
+
 Ubuntu Kinetic 22.10
+
 Ubuntu Jammy 22.04 (LTS)
+
 Ubuntu Focal 20.04 (LTS)
+
 Ubuntu Bionic 18.04 (LTS)
 
 - Docker
@@ -277,18 +289,45 @@ sudo apt-get install python3-rocker
 
 ### Docker_Run.
 
-If you want to launch the whole system in one terminal you can use the following bash comands. Plaease make sure that the .sh files are executable by typing ll on the scripts folder. If they are not executable, please give them permission by using the following command:
+Open a terminal in your home directory, create a workspace and clone the repository 
 
 ```
+mkdir -p catkin_ws/src && cd catkin_ws/src
+git clone https://github.com/masierra892/ros_project.git
+```
+
+If you want to launch the whole system in one terminal you can use the following bash comands. Plaease make sure that the .sh files are executable by typing `ll` on the scripts folder terminal. If they are not executable, please give them permission by using the following command:
+
+``
 chmod +x <sh-file> # Replace the sh-file with the name of each file in the scripts folder. 
 ```
 
-Then launch the project. 
+Make sure that you have built the custom docker image using:
+
+```
+.~/catkin_ws/ros_project/scripts/create_docker_image.sh
+```
+
+The installation will take a while. After is done, launch the container.
 
 ```
 .~/catkin_ws/ros_project/scripts/launch_container.sh
 ```
 
+All the following steps will be done on the terminal that is insde the container. Go to the directory and compile:
+
+```
+cd catkin_ws
+catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release
+```
+
+Then launch the whole project. 
+
+For the main move_base whole package, please use the following command.
+
+```
+.~/catkin_ws/ros_project/scripts/move_base_controller_py.sh
+```
 
 
 
