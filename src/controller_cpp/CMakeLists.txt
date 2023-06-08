@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   move_base_msgs
   actionlib_msgs
-  libgeos
+  # libgeos
 )
 
 ## System dependencies are found with CMake's conventions
@@ -113,7 +113,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES controller_cpp
- CATKIN_DEPENDS roscpp geos
+#  CATKIN_DEPENDS roscpp 
 #  DEPENDS system_lib
 )
 
@@ -149,16 +149,15 @@ add_executable(cpp_controller src/wander_controller.cpp)
 target_link_libraries(cpp_controller ${catkin_LIBRARIES})
 add_dependencies(cpp_controller ${catkin_EXPORTED_TARGETS})
 
-add_executable(move_base_cpp_controller src/move_base_controller.cpp)
-target_link_libraries(move_base_cpp_controller ${catkin_LIBRARIES})
-add_dependencies(move_base_cpp_controller ${catkin_EXPORTED_TARGETS})
+# add_executable(move_base_cpp_controller src/move_base_controller.cpp)
+# target_link_libraries(move_base_cpp_controller ${catkin_LIBRARIES})
+# add_dependencies(move_base_cpp_controller ${catkin_EXPORTED_TARGETS})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
-set_target_properties(geos PROPERTIES IMPORTED_LOCATION my_library_directory/my_library.a)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
