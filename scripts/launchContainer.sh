@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rocker --nvidia --x11 --user --volume $HOME/ros_project -- ros_project_container:latest
+rocker --nvidia --x11 --user --volume $HOME/catkin_ws -- ros_project_container:latest
