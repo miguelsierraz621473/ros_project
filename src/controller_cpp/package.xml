@@ -62,7 +62,7 @@
   <depend>move_base_msgs</depend>
   <depend>actionlib_msgs</depend>
 
-  <!-- <depend>libgeos</depend> -->
+  <!-- <depend>GEOS</depend> -->
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

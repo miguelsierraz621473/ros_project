@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   move_base_msgs
   actionlib_msgs
-  # libgeos
+  # GEOS
 )
 
 ## System dependencies are found with CMake's conventions
@@ -126,14 +126,13 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  # ${GEOS_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/controller_cpp.cpp
 # )
-
-add_library(geos STATIC IMPORTED GLOBAL)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -151,6 +150,7 @@ add_dependencies(cpp_controller ${catkin_EXPORTED_TARGETS})
 
 # add_executable(move_base_cpp_controller src/move_base_controller.cpp)
 # target_link_libraries(move_base_cpp_controller ${catkin_LIBRARIES})
+# target_link_libraries(move_base_cpp_controller ${GEOS_LIBRARIES})
 # add_dependencies(move_base_cpp_controller ${catkin_EXPORTED_TARGETS})
 
 ## Rename C++ executable without prefix
